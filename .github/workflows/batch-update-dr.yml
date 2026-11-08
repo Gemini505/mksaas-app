@@ -1,0 +1,37 @@
+# Run batch DR update for all domains (production DB).
+# Schedule: every Monday and Friday at 08:00 China (UTC+8), i.e. 00:00 UTC; can also be triggered manually.
+# Required secrets: DATABASE_URL, RAPIDAPI_AHREFS_KEY
+# Optional (for DR change emails): RESEND_API_KEY
+name: Batch Update DR
+
+on:
+  # schedule:
+  #   - cron: '0 0 * * 1,5'
+  workflow_dispatch:
+
+jobs:
+  batch-update-dr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run batch update DR
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RAPIDAPI_AHREFS_KEY: ${{ secrets.RAPIDAPI_AHREFS_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: pnpm run batch-update-dr
